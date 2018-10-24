@@ -43,4 +43,111 @@
 		
 	</div>
 	
+		<script type="text/javascript">
+		/*
+		 * Pocket Speedo v1
+		 * http://www.thecssninja.com/javascript/pocket-speedo
+		 * Copyright (c) 2010 Ryan Seddon 
+		 * released under the MIT License
+		*/
+		var TCNPS = TCNPS || {};
+		
+		(function () {
+			var webappCache = window.applicationCache,
+				body = document.getElementsByTagName("body")[0],
+				needle = document.getElementById("needle"),
+				speedVal = document.getElementById("speed"),
+				mode = document.getElementById("mode"),
+				metric = document.getElementById("metric"),
+				isMetric = true;
+			
+			TCNPS.getSpeed = function(pos) {
+				TCNPS.updateStats(pos);
+				
+				coordsListener = navigator.geolocation.watchPosition(TCNPS.updateStats, TCNPS.handleError);
+			};
+			TCNPS.updateStats = function(pos) {
+				var speed = pos.coords.speed,
+					speedVariation = TCNPS.speedVariation || 3.6, // KM is metres * 3.6; Miles is metres * 2.237 
+					currentSpeed = Math.round(speed*speedVariation),
+					angleVariation = TCNPS.angleVariation || 0.8,
+					initSpeedAngle = -105,
+					speedAngle = initSpeedAngle + (currentSpeed * angleVariation);
+					
+				TCNPS.angleVariation = angleVariation;
+				
+				console.log(currentSpeed);
+				console.log(speedAngle);
+				console.log(angleVariation);
+				console.log(speedVariation);
+				
+				needle.style.webkitTransitionDuration = '500ms';
+				needle.style.webkitTransform = "rotate(" + speedAngle + "deg)";
+				speedVal.textContent = currentSpeed + ((isMetric) ? "km/h" : "mph");
+			};
+			TCNPS.handleError = function(error) {
+				alert("Something has gone wrong in getting your location");
+			};
+			
+			TCNPS.changeTravelMode = function() {
+				if(body.className === "fast") {
+					body.className = "slow";
+					mode.textContent = "Faster?";
+					TCNPS.angleVariation = 8;
+				} else {
+					body.className = "fast";
+					mode.textContent = "Slower?";
+					TCNPS.angleVariation = 0.8;
+				}
+			};
+			
+			TCNPS.isMetric = function() {
+				if(isMetric) {
+					TCNPS.speedVariation = 2.237;
+					metric.textContent = "KM/H?";
+					isMetric = false;
+				} else {
+					TCNPS.speedVariation = 3.6;
+					metric.textContent = "MPH?";
+					isMetric = true;
+				}
+			};
+			TCNPS.updateCache = function()
+			{
+				webappCache.swapCache();
+				console.log("Cache has been updated due to a change found in the manifest");
+			};
+			TCNPS.errorCache = function(error)
+			{
+				console.log("You're either offline or something has gone horribly wrong.");
+			};
+			
+			if(navigator.geolocation) {
+				navigator.geolocation.getCurrentPosition(TCNPS.getSpeed, TCNPS.handleError);
+			} else {
+				alert("Browser does not support geolocation object");
+			}
+			
+			if(navigator.standalone) {
+				document.getElementsByTagName("body")[0].id = "appmode";
+			}
+			mode.addEventListener("click", TCNPS.changeTravelMode, false);
+			metric.addEventListener("click", TCNPS.isMetric, false);
+			webappCache.addEventListener("updateready", TCNPS.updateCache, false);
+			webappCache.addEventListener("error", TCNPS.errorCache, false);
+		})();
+	</script>
+		
+	<!-- Google analytics -->
+	<script type="text/javascript">
+		var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+		document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+	</script>
+	<script type="text/javascript">
+		var pageTracker = _gat._getTracker("UA-4638292-1");
+		pageTracker._initData();
+		pageTracker._trackPageview();
+	</script>
 	
+</body>
+</html>
